@@ -16,7 +16,7 @@ async function fetchWithErrorHandling<T>(url: string, options?: RequestInit): Pr
 
 export async function fetchZennArticles(): Promise<Article[]> {
   try {
-    const data = await fetchWithErrorHandling(API_CONFIG.ZENN.BASE_URL);
+    const data: any = await fetchWithErrorHandling(API_CONFIG.ZENN.BASE_URL);
     
     return data.articles.map((article: ZennArticle) => ({
       id: article.id.toString(),

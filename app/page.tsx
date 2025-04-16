@@ -5,7 +5,7 @@ import { BookMarked, TrendingUp, Clock, Filter, Github, Twitter } from "lucide-r
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { fetchAllArticles, fetchZennArticles, fetchQiitaArticles, fetchHackerNewsArticles } from "@/lib/api/articles";
-import { AuthButton } from "@/components/auth-button";
+// import { AuthButton } from "@/components/auth-button";
 
 async function getArticles(source?: string) {
   switch (source) {
@@ -89,7 +89,7 @@ export default async function Home() {
             </Button>
           </nav>
           <div className="ml-auto">
-            <AuthButton />
+            {/* <AuthButton /> */}
           </div>
         </div>
       </header>
