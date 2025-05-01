@@ -1,5 +1,6 @@
 import { Article, ZennArticle, QiitaArticle, HackerNewsStory } from './types';
 import { API_CONFIG } from './config';
+import { prisma } from '@/lib/prisma';
 
 async function fetchWithErrorHandling<T>(url: string, options?: RequestInit): Promise<T> {
   try {
@@ -11,6 +12,45 @@ async function fetchWithErrorHandling<T>(url: string, options?: RequestInit): Pr
   } catch (error) {
     console.error(`Fetch error: ${error}`);
     throw error;
+  }
+}
+
+async function saveArticlesToDB(articles: Article[]) {
+  try {
+    for (const article of articles) {
+      try {
+        const articleId = parseInt(article.id);
+        if (isNaN(articleId)) {
+          console.error(`Invalid article ID: ${article.id}`);
+          continue;
+        }
+
+        await prisma.article.upsert({
+          where: { id: articleId },
+          update: {
+            title: article.title,
+            url: article.url,
+            source: article.source,
+            publishedAt: new Date(article.publishedAt),
+            author: article.author,
+            likes: article.likes,
+          },
+          create: {
+            id: articleId,
+            title: article.title,
+            url: article.url,
+            source: article.source,
+            publishedAt: new Date(article.publishedAt),
+            author: article.author,
+            likes: article.likes,
+          },
+        });
+      } catch (articleError) {
+        console.error(`Error saving article ${article.id}:`, articleError);
+      }
+    }
+  } catch (error) {
+    console.error('Error in saveArticlesToDB:', error);
   }
 }
 
@@ -97,17 +137,13 @@ export async function fetchHackerNewsArticles(): Promise<Article[]> {
 }
 
 export async function fetchAllArticles(): Promise<Article[]> {
-  try {
-    const [zennArticles, qiitaArticles, hackerNewsArticles] = await Promise.all([
-      fetchZennArticles(),
-      fetchQiitaArticles(),
-      fetchHackerNewsArticles(),
-    ]);
+  const [zennArticles, qiitaArticles, hackerNewsArticles] = await Promise.all([
+    fetchZennArticles(),
+    fetchQiitaArticles(),
+    fetchHackerNewsArticles(),
+  ]);
 
-    return [...zennArticles, ...qiitaArticles, ...hackerNewsArticles]
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-  } catch (error) {
-    console.error('Error fetching all articles:', error);
-    return [];
-  }
+  const allArticles = [...zennArticles, ...qiitaArticles, ...hackerNewsArticles];
+  await saveArticlesToDB(allArticles);
+  return allArticles;
 }

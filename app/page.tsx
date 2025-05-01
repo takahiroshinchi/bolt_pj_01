@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookMarked, TrendingUp, Clock, Filter, Github, Twitter } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { TrendingUp, Clock, Filter, Github, Twitter } from "lucide-react";
 import Link from "next/link";
 import { fetchAllArticles, fetchZennArticles, fetchQiitaArticles, fetchHackerNewsArticles } from "@/lib/api/articles";
-// import { AuthButton } from "@/components/auth-button";
+import { ArticleList } from "@/components/ArticleList";
+import { SignInButton } from "@/components/auth/SignInButton";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { auth } from "@clerk/nextjs";
 
 async function getArticles(source?: string) {
   switch (source) {
@@ -21,54 +22,13 @@ async function getArticles(source?: string) {
 }
 
 export default async function Home() {
+  const { userId } = auth();
   const [allArticles, zennArticles, qiitaArticles, hackerNewsArticles] = await Promise.all([
     getArticles(),
     getArticles('zenn'),
     getArticles('qiita'),
     getArticles('hackernews'),
   ]);
-
-  const ArticleList = ({ articles }: { articles: Awaited<ReturnType<typeof getArticles>> }) => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {articles.map((article) => (
-        <Card key={article.id} className="hover:bg-muted/50 transition-colors">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <BookMarked className="h-4 w-4 text-muted-foreground" />
-              <CardDescription>
-                {article.source} • {new Date(article.publishedAt).toLocaleString('ja-JP', { 
-                  year: 'numeric',
-                  month: 'numeric',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: 'numeric'
-                })}
-              </CardDescription>
-            </div>
-            <CardTitle className="line-clamp-2 hover:text-primary cursor-pointer">
-              <a href={article.url} target="_blank" rel="noopener noreferrer">
-                {article.title}
-              </a>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <div className="flex items-center space-x-2">
-                <span>著者: {article.author}</span>
-                {article.readingTime && (
-                  <>
-                    <Separator orientation="vertical" className="h-4" />
-                    <span>読了時間: {article.readingTime}分</span>
-                  </>
-                )}
-              </div>
-              <span>❤️ {article.likes}</span>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -89,7 +49,7 @@ export default async function Home() {
             </Button>
           </nav>
           <div className="ml-auto">
-            {/* <AuthButton /> */}
+            {userId ? <SignOutButton /> : <SignInButton />}
           </div>
         </div>
       </header>

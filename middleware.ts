@@ -9,6 +9,7 @@ export default authMiddleware({
     "/favicon.ico",
     "/robots.txt",
     "/sitemap.xml",
+    "/api/webhook/clerk",
   ],
   // webhookなどの認証をスキップするパス
   ignoredRoutes: [
@@ -35,5 +36,8 @@ export const config = {
     // - _next/image (画像最適化API)
     // - favicon.ico (ブラウザーアイコン)
     "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!.+\\.[\\w]+$|_next).*)",
+    "/",
+    "/(api|trpc)(.*)",
   ],
 };
